@@ -4,7 +4,7 @@ A discord bot that provides information about Codeforces users, contests and pro
 
 ## Commands
 
-- TBA
+- `/profile <handle>`: Get information about a Codeforces user
 
 ## Setup
 
@@ -17,9 +17,11 @@ A discord bot that provides information about Codeforces users, contests and pro
 
 1. Clone the repository
 2. Create a new bot application on the [Discord Developer Portal](https://discord.com/developers/applications)
-3. Copy the bot token and paste it in the `appsettings.json` file
-4. Build the project
-5. Run the bot
+3. Build the project
+4. Run the bot using the following command:
+```console
+> dotnet run <DISCORD_BOT_TOKEN>
+```
 
 ## License
 
