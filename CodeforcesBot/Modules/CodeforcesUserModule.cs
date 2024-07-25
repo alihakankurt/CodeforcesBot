@@ -3,6 +3,7 @@ using Discord;
 using Discord.Interactions;
 using Discord.WebSocket;
 using CodeforcesBot.Models;
+using System.Linq;
 
 namespace CodeforcesBot.Modules;
 
@@ -36,9 +37,34 @@ public sealed class CodeforcesUserModule : InteractionModuleBase<SocketInteracti
                 new EmbedFieldBuilder().WithName("Rating").WithValue($"{user.Rating} (Max: {user.MaxRating})"),
                 new EmbedFieldBuilder().WithName("Rank").WithValue($"{user.Rank} (Max: {user.MaxRank})"),
                 new EmbedFieldBuilder().WithName("Contribution").WithValue(user.Contribution),
-                new EmbedFieldBuilder().WithName("Registered At").WithValue(user.RegisteredAt.ToString("yyyy-MM-dd HH:mm:ss")),
-                new EmbedFieldBuilder().WithName("Last Online At").WithValue(user.LastOnlineAt.ToString("yyyy-MM-dd HH:mm:ss"))
+                new EmbedFieldBuilder().WithName("Registered At").WithValue(user.RegisteredAt.ToRelativeString()),
+                new EmbedFieldBuilder().WithName("Last Online At").WithValue(user.LastOnlineAt.ToRelativeString())
             )
+            .Build();
+
+        await RespondAsync(embed: embed);
+    }
+
+    [SlashCommand("history", "Get the contest history of a Codeforces user")]
+    public async Task RatingCommand([Summary(nameof(handle), "The handle of the user")] string handle, [Summary(nameof(count), "The maximum number of contests to show")] int count = 5)
+    {
+        CodeforcesRatingChange[] ratingChanges = await CodeforcesAPI.GetRatingChangesAsync(handle);
+        if (ratingChanges.Length == 0)
+        {
+            await RespondAsync("User didn't participate in any contests", ephemeral: true);
+            return;
+        }
+
+        Embed embed = new EmbedBuilder()
+            .WithAuthor((author) =>
+            {
+                author.Name = $"{handle}'s Contest History";
+                author.Url = $"https://codeforces.com/profile/{handle}";
+            })
+            .WithColor(Color.Blue)
+            .WithFields(ratingChanges.Reverse().Take(count).Select(static (ratingChange) => new EmbedFieldBuilder()
+                    .WithName($"{ratingChange.ContestName} ({ratingChange.UpdatedAt.ToRelativeString()})")
+                    .WithValue($"Rank: #{ratingChange.Rank}\nRating: {ratingChange.OldRating} -> {ratingChange.NewRating} ({ratingChange.NewRating - ratingChange.OldRating:+#;-#;0})")))
             .Build();
 
         await RespondAsync(embed: embed);

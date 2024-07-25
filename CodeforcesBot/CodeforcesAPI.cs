@@ -31,4 +31,17 @@ public static class CodeforcesAPI
 
         return null;
     }
+
+    public static async ValueTask<CodeforcesRatingChange[]> GetRatingChangesAsync(string handle, CancellationToken cancellationToken = default)
+    {
+        string endPoint = $"user.rating?handle={handle}&lang=en";
+        CodeforcesResult<CodeforcesRatingChange[]>? result = await _client.GetFromJsonAsync<CodeforcesResult<CodeforcesRatingChange[]>>(endPoint, cancellationToken);
+
+        if (result is { Status: CodeforcesResultStatus.Ok })
+        {
+            return result.Data;
+        }
+
+        return Array.Empty<CodeforcesRatingChange>();
+    }
 }
